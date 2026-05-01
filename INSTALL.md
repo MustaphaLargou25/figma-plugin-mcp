@@ -81,8 +81,11 @@ Claude will call `join_channel` first, then use write tools like `create_frame`,
 ## Developer notes
 
 - The local relay source lives at `server/socket.js`.
+- A high-performance Rust relay replacement lives at `rust-relay/`.
+- To use it instead of Bun/Node, stop the JS relay and start `start-rust-relay.bat`.
 - The bridge JSON contract lives at `contracts/figma-mcp-bridge.schema.json`.
 - Architecture and performance notes live at `docs/ARCHITECTURE.md`.
+- Rust relay notes live at `docs/RUST_RELAY.md`.
 - You can override relay settings with environment variables before launching Bun:
   - `FIGMA_MCP_SOCKET_PORT`
   - `FIGMA_MCP_COMMAND_TIMEOUT_MS`

@@ -146,9 +146,9 @@ Stream progress:
 - Avoid progress payloads that mirror final payloads. Progress should be status-oriented; final results carry the full data.
 - Raster export size should be bounded before `exportAsync`, because base64 expands payloads by about one third and then JSON stringification adds another copy.
 
-## Rust Layer Candidate
+## Rust Layer
 
-The best Rust target is the relay, not the Figma plugin. A Rust relay can provide lower and more predictable memory use for queues, JSON validation, rate limiting, and metrics while leaving Figma API access in JavaScript.
+The best Rust target is the relay, not the Figma plugin. A Rust relay can provide lower and more predictable memory use for queues, JSON validation, rate limiting, and metrics while leaving Figma API access in JavaScript. A drop-in implementation now lives in `rust-relay/`; see `docs/RUST_RELAY.md` for run and integration details.
 
 Recommended shape:
 
