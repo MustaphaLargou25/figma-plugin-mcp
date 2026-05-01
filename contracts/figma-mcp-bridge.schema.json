@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.figma-mcp.dev/contracts/figma-mcp-bridge.schema.json",
+  "title": "Figma MCP WebSocket Bridge Protocol",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/join" },
+    { "$ref": "#/$defs/commandMessage" },
+    { "$ref": "#/$defs/resultMessage" },
+    { "$ref": "#/$defs/progressUpdate" },
+    { "$ref": "#/$defs/systemMessage" },
+    { "$ref": "#/$defs/errorMessage" },
+    { "$ref": "#/$defs/queuePosition" }
+  ],
+  "$defs": {
+    "channel": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]{3,64}$"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "jsonObject": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "join": {
+      "type": "object",
+      "required": ["type", "channel"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "join" },
+        "channel": { "$ref": "#/$defs/channel" },
+        "sessionId": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "commandMessage": {
+      "type": "object",
+      "required": ["id", "type", "channel", "message"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "message" },
+        "channel": { "$ref": "#/$defs/channel" },
+        "message": {
+          "type": "object",
+          "required": ["id", "command"],
+          "properties": {
+            "id": { "$ref": "#/$defs/id" },
+            "command": { "type": "string", "minLength": 1 },
+            "params": { "$ref": "#/$defs/jsonObject" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "resultMessage": {
+      "type": "object",
+      "required": ["id", "type", "channel", "message"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "message" },
+        "channel": { "$ref": "#/$defs/channel" },
+        "message": {
+          "type": "object",
+          "required": ["id"],
+          "properties": {
+            "id": { "$ref": "#/$defs/id" },
+            "result": true,
+            "error": { "type": "string" }
+          },
+          "oneOf": [
+            { "required": ["result"] },
+            { "required": ["error"] }
+          ],
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "progressUpdate": {
+      "type": "object",
+      "required": ["id", "type", "channel", "message"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "progress_update" },
+        "channel": { "$ref": "#/$defs/channel" },
+        "message": {
+          "type": "object",
+          "required": ["id", "type", "data"],
+          "properties": {
+            "id": { "$ref": "#/$defs/id" },
+            "type": { "const": "progress_update" },
+            "data": {
+              "type": "object",
+              "required": ["status", "progress", "message"],
+              "properties": {
+                "commandId": { "$ref": "#/$defs/id" },
+                "commandType": { "type": "string" },
+                "status": { "enum": ["queued", "started", "in_progress", "completed", "error"] },
+                "progress": { "type": "number", "minimum": 0, "maximum": 100 },
+                "message": { "type": "string" },
+                "totalItems": { "type": "number" },
+                "processedItems": { "type": "number" },
+                "timestamp": { "type": "number" }
+              },
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "systemMessage": {
+      "type": "object",
+      "required": ["type", "message"],
+      "properties": {
+        "type": { "const": "system" },
+        "channel": { "$ref": "#/$defs/channel" },
+        "message": {
+          "oneOf": [
+            { "type": "string" },
+            {
+              "type": "object",
+              "properties": {
+                "id": { "$ref": "#/$defs/id" },
+                "result": true
+              },
+              "additionalProperties": true
+            }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "errorMessage": {
+      "type": "object",
+      "required": ["type", "message"],
+      "properties": {
+        "type": { "const": "error" },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "queuePosition": {
+      "type": "object",
+      "required": ["type", "id", "position", "queueSize"],
+      "properties": {
+        "type": { "const": "queue_position" },
+        "id": { "$ref": "#/$defs/id" },
+        "position": { "type": "integer", "minimum": 1 },
+        "queueSize": { "type": "integer", "minimum": 1 },
+        "message": { "$ref": "#/$defs/jsonObject" }
+      },
+      "additionalProperties": true
+    }
+  }
+}
