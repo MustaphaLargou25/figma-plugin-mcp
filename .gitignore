@@ -1,0 +1,30 @@
+# Ignore build artifacts and local secrets
+
+# Rust
+rust-relay/target/
+target/
+
+# Node/Bun
+node_modules/
+dist/
+bun.lockb
+
+# Local environment files
+.env
+.env.*
+.claude.json
+.claude.json.pre-figma-write-mcp-backup
+
+# Logs
+logs/
+*.log
+
+# Editor/OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.swp
