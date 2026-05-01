@@ -42,6 +42,7 @@ The MCP server exposes tools to the AI model. The relay does not call Figma dire
 - Added a local relay at `server/socket.js` and pointed `start-socket.bat` to it.
 - Added `/healthz` and `/status` endpoints for monitoring.
 - Added per-channel command queues with timeout reset on progress updates.
+- Added default `figma-auto` channel support so the plugin and MCP CLI server can connect without copying a channel ID.
 - Added reconnect/session handling in `ui.html` so relay restarts do not leave stale clients behind.
 - Added plugin-side command metrics and a `health_check` command in `code.js`.
 - Serialized mutating plugin commands while allowing read-only commands to run immediately.
@@ -72,12 +73,12 @@ Returns queue depth, active channels, pending request count, client counts, and 
 
 ## WebSocket Contract
 
-Join a channel:
+Join a channel. This is now automatic for the default workflow; both plugin and MCP CLI server use `figma-auto` unless overridden:
 
 ```json
 {
   "type": "join",
-  "channel": "abc123xy",
+  "channel": "figma-auto",
   "sessionId": "figma_7s9k2..."
 }
 ```
@@ -88,7 +89,7 @@ Send a command from MCP server to Figma:
 {
   "id": "request-1",
   "type": "message",
-  "channel": "abc123xy",
+  "channel": "figma-auto",
   "message": {
     "id": "request-1",
     "command": "create_frame",
@@ -109,7 +110,7 @@ Return a plugin result:
 {
   "id": "request-1",
   "type": "message",
-  "channel": "abc123xy",
+  "channel": "figma-auto",
   "message": {
     "id": "request-1",
     "result": {
@@ -126,7 +127,7 @@ Stream progress:
 {
   "id": "request-1",
   "type": "progress_update",
-  "channel": "abc123xy",
+  "channel": "figma-auto",
   "message": {
     "id": "request-1",
     "type": "progress_update",

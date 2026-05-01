@@ -3,6 +3,7 @@ use std::{env, net::SocketAddr, time::Duration};
 #[derive(Debug, Clone)]
 pub struct RelayConfig {
     pub bind: SocketAddr,
+    pub default_channel: String,
     pub command_timeout: Duration,
     pub max_queue_size: usize,
     pub max_message_bytes: usize,
@@ -24,6 +25,8 @@ impl RelayConfig {
 
         Self {
             bind,
+            default_channel: env::var("FIGMA_MCP_DEFAULT_CHANNEL")
+                .unwrap_or_else(|_| "figma-auto".to_string()),
             command_timeout: Duration::from_millis(read_env_u64(
                 "FIGMA_MCP_COMMAND_TIMEOUT_MS",
                 120_000,

@@ -53,7 +53,7 @@ rust-relay/
 
 ## Protocol Compatibility
 
-No plugin or MCP server changes are required. The Rust relay keeps the same protocol described in `contracts/figma-mcp-bridge.schema.json`:
+The Rust relay keeps the same protocol described in `contracts/figma-mcp-bridge.schema.json` and also accepts omitted `channel` values by falling back to `figma-auto`. The Figma plugin and patched MCP CLI server now use that shared channel automatically:
 
 - `join`
 - `message` with `message.command`
@@ -115,7 +115,7 @@ Default bind:
 1. Stop any running `bun.exe` relay on port `3055`.
 2. Start `start-rust-relay.bat`.
 3. Run the Figma plugin and click Connect.
-4. Keep using the same MCP server and `join_channel` tool with the same channel ID.
+4. Keep using the same MCP server. No `join_channel` call or copied channel ID is needed for the default workflow.
 
 No `manifest.json`, `ui.html`, `code.js`, or MCP server tool changes are required.
 
@@ -124,6 +124,8 @@ No `manifest.json`, `ui.html`, `code.js`, or MCP server tool changes are require
 ```text
 FIGMA_MCP_BIND=127.0.0.1:3055
 FIGMA_MCP_SOCKET_PORT=3055
+FIGMA_MCP_DEFAULT_CHANNEL=figma-auto
+FIGMA_MCP_AUTO_CHANNEL=figma-auto
 FIGMA_MCP_COMMAND_TIMEOUT_MS=120000
 FIGMA_MCP_MAX_QUEUE_SIZE=100
 FIGMA_MCP_MAX_MESSAGE_BYTES=26214400

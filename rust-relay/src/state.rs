@@ -142,6 +142,7 @@ impl RelayStats {
 pub struct HealthSnapshot {
     pub status: &'static str,
     pub uptime_ms: u128,
+    pub default_channel: String,
     pub plugin_count: usize,
     pub agent_count: usize,
 }
@@ -171,6 +172,7 @@ pub struct QueueSnapshot {
 pub struct StatusSnapshot {
     pub status: &'static str,
     pub uptime_ms: u128,
+    pub default_channel: String,
     pub stats: StatsSnapshot,
     pub queue: QueueSnapshot,
 }
@@ -283,6 +285,7 @@ impl AppState {
         HealthSnapshot {
             status: "ok",
             uptime_ms: self.started_at.elapsed().as_millis(),
+            default_channel: self.config.default_channel.clone(),
             plugin_count: self.plugin_clients.len(),
             agent_count: self.agent_clients.len(),
         }
@@ -317,6 +320,7 @@ impl AppState {
         StatusSnapshot {
             status: "running",
             uptime_ms: self.started_at.elapsed().as_millis(),
+            default_channel: self.config.default_channel.clone(),
             stats: self.stats.snapshot(),
             queue: QueueSnapshot {
                 pending_requests: self.request_to_client.len(),
@@ -328,7 +332,7 @@ impl AppState {
     }
 
     async fn handle_join(self: &Arc<Self>, client_id: &str, envelope: BridgeEnvelope) {
-        let Some(channel) = envelope.channel.as_deref().and_then(normalize_channel_name) else {
+        let Some(channel) = self.envelope_channel_or_default(&envelope) else {
             self.send_value(
                 client_id,
                 error_text("Valid channel is required (3-64 chars: letters, numbers, _, -)"),
@@ -370,7 +374,7 @@ impl AppState {
     }
 
     async fn handle_message(self: &Arc<Self>, client_id: &str, envelope: BridgeEnvelope) {
-        let Some(channel) = envelope.channel.as_deref().and_then(normalize_channel_name) else {
+        let Some(channel) = self.envelope_channel_or_default(&envelope) else {
             self.send_value(client_id, error_text("Channel name is required"));
             return;
         };
@@ -421,7 +425,7 @@ impl AppState {
         envelope: BridgeEnvelope,
         raw: Arc<str>,
     ) {
-        let Some(channel) = envelope.channel.as_deref().and_then(normalize_channel_name) else {
+        let Some(channel) = self.envelope_channel_or_default(&envelope) else {
             return;
         };
 
@@ -810,6 +814,14 @@ impl AppState {
             .entry(channel.to_string())
             .or_insert_with(|| Arc::new(Mutex::new(ChannelQueue::default())))
             .clone()
+    }
+
+    fn envelope_channel_or_default(&self, envelope: &BridgeEnvelope) -> Option<String> {
+        envelope
+            .channel
+            .as_deref()
+            .and_then(normalize_channel_name)
+            .or_else(|| normalize_channel_name(&self.config.default_channel))
     }
 
     fn client_is_in_channel(&self, client_id: &str, channel: &str) -> bool {

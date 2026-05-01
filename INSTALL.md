@@ -48,7 +48,7 @@ You need the **Figma desktop app** (not the web app — desktop Figma is require
 3. Navigate to `C:\Users\hp\Desktop\figma_mcp_developement\figma-plugin-ready\` and select `manifest.json`.
 4. The plugin **Claude Talk to Figma Plugin** now appears under Plugins → Development.
 5. Run it: **Plugins → Development → Claude Talk to Figma Plugin**.
-6. A small panel opens inside Figma. It shows *Disconnected*. Click **Connect**. The status should flip to *Connected* and a **channel ID** (e.g., `a3f9b2c1`) will be displayed. Copy it.
+6. A small panel opens inside Figma. It auto-connects to the relay using the shared `figma-auto` channel. If the relay was not running yet, leave the panel open and start the relay; it will retry.
 
 ---
 
@@ -60,11 +60,9 @@ After reopening, verify by typing `/mcp` in Claude Code — you should see both 
 
 ---
 
-## Step 4 — Give Claude the channel ID
+## Step 4 — Use Claude normally
 
-When you start the next session, tell Claude: *"The Figma channel ID is `<channel-id>`, build the Marolet design in the open file."*
-
-Claude will call `join_channel` first, then use write tools like `create_frame`, `create_text`, `set_fill_color`, `create_component`, etc. to build the file.
+No channel ID is needed now. The patched MCP CLI server auto-joins the shared `figma-auto` channel, then uses write tools like `create_frame`, `create_text`, `set_fill_color`, `create_component`, etc.
 
 ---
 
@@ -83,11 +81,14 @@ Claude will call `join_channel` first, then use write tools like `create_frame`,
 - The local relay source lives at `server/socket.js`.
 - A high-performance Rust relay replacement lives at `rust-relay/`.
 - To use it instead of Bun/Node, stop the JS relay and start `start-rust-relay.bat`.
+- The installed MCP CLI server has been patched by `scripts/enable-auto-channel.ps1` to auto-join `figma-auto`.
 - The bridge JSON contract lives at `contracts/figma-mcp-bridge.schema.json`.
 - Architecture and performance notes live at `docs/ARCHITECTURE.md`.
 - Rust relay notes live at `docs/RUST_RELAY.md`.
 - You can override relay settings with environment variables before launching Bun:
   - `FIGMA_MCP_SOCKET_PORT`
+  - `FIGMA_MCP_DEFAULT_CHANNEL`
+  - `FIGMA_MCP_AUTO_CHANNEL`
   - `FIGMA_MCP_COMMAND_TIMEOUT_MS`
   - `FIGMA_MCP_MAX_QUEUE_SIZE`
   - `FIGMA_MCP_MAX_MESSAGE_BYTES`

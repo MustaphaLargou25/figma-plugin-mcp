@@ -2,6 +2,7 @@
 // Runs with Bun and keeps MCP-agent commands serialized per Figma channel.
 
 const PORT = Number(Bun.env.FIGMA_MCP_SOCKET_PORT || "3055");
+const DEFAULT_CHANNEL = Bun.env.FIGMA_MCP_DEFAULT_CHANNEL || "figma-auto";
 const COMMAND_TIMEOUT_MS = Number(Bun.env.FIGMA_MCP_COMMAND_TIMEOUT_MS || "120000");
 const MAX_QUEUE_SIZE = Number(Bun.env.FIGMA_MCP_MAX_QUEUE_SIZE || "100");
 const MAX_INCOMING_MESSAGE_BYTES = Number(Bun.env.FIGMA_MCP_MAX_MESSAGE_BYTES || String(25 * 1024 * 1024));
@@ -310,7 +311,7 @@ function handleResponseFromPlugin(data, channelName) {
 }
 
 function handleProgressUpdate(data, ws) {
-  const channelName = normalizeChannelName(data.channel);
+  const channelName = normalizeChannelName(data.channel || DEFAULT_CHANNEL);
   if (!channelName) return;
 
   classifyClient(ws, data);
@@ -405,7 +406,7 @@ function cleanupClient(ws, clientChannels = []) {
 }
 
 function handleJoin(ws, data) {
-  const channelName = normalizeChannelName(data.channel);
+  const channelName = normalizeChannelName(data.channel || DEFAULT_CHANNEL);
   if (!channelName) {
     safeSend(ws, { type: "error", message: "Valid channel is required (3-64 chars: letters, numbers, _, -)" });
     return;
@@ -440,7 +441,7 @@ function handleJoin(ws, data) {
 }
 
 function handleMessage(ws, data) {
-  const channelName = normalizeChannelName(data.channel);
+  const channelName = normalizeChannelName(data.channel || DEFAULT_CHANNEL);
   if (!channelName) {
     safeSend(ws, { type: "error", message: "Channel name is required" });
     return;
@@ -500,6 +501,7 @@ function statusPayload() {
   return {
     status: "running",
     uptimeMs: Date.now() - stats.startedAt,
+    defaultChannel: DEFAULT_CHANNEL,
     stats,
     queue: {
       pendingRequests: requestToClient.size,
@@ -532,6 +534,7 @@ const server = Bun.serve({
       return Response.json({
         status: "ok",
         uptimeMs: Date.now() - stats.startedAt,
+        defaultChannel: DEFAULT_CHANNEL,
         pluginCount: pluginClients.size,
         agentCount: agentClients.size,
       }, { headers });

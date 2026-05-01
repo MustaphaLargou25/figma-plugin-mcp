@@ -258,6 +258,8 @@
     </div>
 
     <script>
+      const DEFAULT_AUTO_CHANNEL = "figma-auto";
+
       /**
        * ClaudeMCPPlugin Class
        * Managed WebSocket connection, Figma communication, and UI state.
@@ -269,7 +271,7 @@
             socket: null,
             serverPort: 3055,
             pendingRequests: new Map(),
-            channel: null,
+            channel: DEFAULT_AUTO_CHANNEL,
             sessionId: this.generateSessionId(),
             manualDisconnect: false,
             reconnectAttempts: 0,
@@ -320,6 +322,8 @@
 
           // Figma messages
           window.onmessage = (event) => this.handleFigmaMessage(event.data.pluginMessage);
+
+          setTimeout(() => this.connect(), 250);
         }
 
         /**
@@ -375,7 +379,7 @@
 
             socket.onopen = () => {
               this.clearConnectTimer();
-              const channelName = this.state.channel || this.generateChannelName();
+              const channelName = this.state.channel || DEFAULT_AUTO_CHANNEL;
               console.log("Joining channel:", channelName);
               this.state.channel = channelName;
 
@@ -399,14 +403,14 @@
                     const channelName = data.channel;
                     this.updateStatus(
                       true,
-                      `Connected on port ${port}!<br>Copy the channel ID: <span class="mcp-plugin__channel-name" title="Click to copy">${channelName}</span>`
+                      `Connected on port ${port}<br>Auto mode ready`
                     );
 
                     parent.postMessage(
                       {
                         pluginMessage: {
                           type: "notify",
-                          message: `Connected on port ${port}. In channel: ${channelName}`,
+                          message: `Connected on port ${port}. Auto mode ready.`,
                         },
                       },
                       "*"
@@ -683,7 +687,7 @@
         }
 
         generateChannelName() {
-          return this.randomToken(8);
+          return DEFAULT_AUTO_CHANNEL;
         }
 
         generateSessionId() {
